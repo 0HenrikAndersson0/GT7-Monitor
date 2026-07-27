@@ -81,24 +81,72 @@ ${err.stack}`);
   sock.on('message', (msg, rinfo) => {
     const decrypted = decryptPacket(msg);
     if (decrypted) {
-      // Unpack selected telemetry fields
-      const speed_ms = decrypted.readFloatLE(0x20);
+      // Unpack all telemetry fields
+      const pkg_id = decrypted.readInt32LE(0x04);
+      const best_lap_time = decrypted.readInt32LE(0x0C);
+      const last_lap_time = decrypted.readInt32LE(0x10);
+      const current_lap = decrypted.readInt32LE(0x14);
+      const current_gear = decrypted.readInt16LE(0x1C) & 0x0F;
+      const suggested_gear = decrypted.readInt16LE(0x1E) & 0x0F;
+      const speed_kmh = decrypted.readFloatLE(0x20) * 3.6;
       const rpm = decrypted.readFloatLE(0x24);
-      const gear_raw = decrypted.readInt16LE(0x1C);
-      const throttle_raw = decrypted.readUInt8(0x70);
-      const brake_raw = decrypted.readUInt8(0x71);
+      const turbo_boost = decrypted.readFloatLE(0x28);
+      const water_temp = decrypted.readFloatLE(0x2C);
+      const oil_pressure = decrypted.readFloatLE(0x30);
+      const oil_temp = decrypted.readFloatLE(0x34);
 
-      const speed_kmh = speed_ms * 3.6;
-      const gear = gear_raw & 0x0F;
-      const throttle = (throttle_raw / 255.0) * 100.0;
-      const brake = (brake_raw / 255.0) * 100.0;
+      const car_body_x = decrypted.readFloatLE(0x38);
+      const car_body_y = decrypted.readFloatLE(0x3C);
+      const car_body_z = decrypted.readFloatLE(0x40);
+
+      const vel_x = decrypted.readFloatLE(0x44);
+      const vel_y = decrypted.readFloatLE(0x48);
+      const vel_z = decrypted.readFloatLE(0x4C);
+
+      const rot_pitch = decrypted.readFloatLE(0x50);
+      const rot_yaw = decrypted.readFloatLE(0x54);
+      const rot_roll = decrypted.readFloatLE(0x58);
+
+      const tire_temp_fl = decrypted.readFloatLE(0x60);
+      const tire_temp_fr = decrypted.readFloatLE(0x64);
+      const tire_temp_rl = decrypted.readFloatLE(0x68);
+      const tire_temp_rr = decrypted.readFloatLE(0x6C);
+
+      const throttle = (decrypted.readUInt8(0x70) / 255.0) * 100.0;
+      const brake = (decrypted.readUInt8(0x71) / 255.0) * 100.0;
+      const fuel_capacity = decrypted.readFloatLE(0x74);
+      const fuel_remaining = decrypted.readFloatLE(0x78);
 
       const telemetryData = {
-        speed: speed_kmh,
-        rpm: rpm,
-        gear: gear,
-        throttle: throttle,
-        brake: brake
+        pkg_id,
+        best_lap_time,
+        last_lap_time,
+        current_lap,
+        current_gear,
+        suggested_gear,
+        speed_kmh,
+        rpm,
+        turbo_boost,
+        water_temp,
+        oil_pressure,
+        oil_temp,
+        car_body_x,
+        car_body_y,
+        car_body_z,
+        vel_x,
+        vel_y,
+        vel_z,
+        rot_pitch,
+        rot_yaw,
+        rot_roll,
+        tire_temp_fl,
+        tire_temp_fr,
+        tire_temp_rl,
+        tire_temp_rr,
+        throttle,
+        brake,
+        fuel_capacity,
+        fuel_remaining
       };
 
       if (mainWindow && !mainWindow.isDestroyed()) {
