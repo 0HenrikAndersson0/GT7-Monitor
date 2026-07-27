@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gran Turismo 7 Telemetry</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #222;
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .telemetry-container {
+      background-color: #333;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      width: 300px;
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+    .metric span.value {
+      font-weight: bold;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="telemetry-container">
+    <h2>GT7 Telemetry</h2>
+    <div class="metric">
+      <span>Speed:</span>
+      <span class="value" id="speed">0.0 km/h</span>
+    </div>
+    <div class="metric">
+      <span>RPM:</span>
+      <span class="value" id="rpm">0</span>
+    </div>
+    <div class="metric">
+      <span>Gear:</span>
+      <span class="value" id="gear">0</span>
+    </div>
+    <div class="metric">
+      <span>Throttle:</span>
+      <span class="value" id="throttle">0%</span>
+    </div>
+    <div class="metric">
+      <span>Brake:</span>
+      <span class="value" id="brake">0%</span>
+    </div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>
