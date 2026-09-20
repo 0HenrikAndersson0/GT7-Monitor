@@ -1,4 +1,7 @@
-# Gran Turismo 7 Telemetry Dashboard & Race Engineer
+<div align="center">
+  <img src="docs/logo.png" width="200" alt="GT7 Race Engineer Logo" />
+  <h1>Gran Turismo 7 Telemetry & Race Engineer</h1>
+</div>
 
 A real-time telemetry dashboard for Gran Turismo 7 that features an automated, fully-voiced Race Engineer. The app tracks your lap times, fuel usage, dynamic 5-sector micro-splits, and displays everything on a sleek, mobile-friendly interface. 
 
