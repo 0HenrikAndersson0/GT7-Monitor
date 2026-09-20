@@ -6,6 +6,19 @@ With the optional Discord integration, the Race Engineer will even speak to you 
 
 ---
 
+## 📸 Screenshots
+
+![Modern Racing Dash](docs/screen1.png)
+*Screen 1: Essential RPM, speed, and gear telemetry.*
+
+![Track Mapping & Sectors](docs/screen2.png)
+*Screen 2: Automated 5-sector track map and gap times.*
+
+![Input Telemetry](docs/screen3.png)
+*Screen 3: Driver inputs and cornering analysis.*
+
+---
+
 ## 🚀 How to Install and Run
 
 Don't worry if you aren't a programmer! Just follow these simple steps to get the app running on your computer.
