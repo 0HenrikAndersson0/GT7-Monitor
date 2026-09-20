@@ -4,6 +4,7 @@ if (!window.gt7Telemetry) {
   const callbacks = {
     update: [],
     engineer: [],
+    playAudio: [],
     ttsProgress: [],
     mapReady: []
   };
@@ -15,6 +16,8 @@ if (!window.gt7Telemetry) {
       const msg = JSON.parse(event.data);
       if (msg.type === 'telemetry-update') {
         callbacks.update.forEach(cb => cb(msg.data));
+      } else if (msg.type === 'play-audio') {
+        callbacks.playAudio.forEach(cb => cb(msg.data));
       } else if (msg.type === 'engineer-message') {
         callbacks.engineer.forEach(cb => cb(msg.data));
       } else if (msg.type === 'tts-progress') {
@@ -30,6 +33,7 @@ if (!window.gt7Telemetry) {
   window.gt7Telemetry = {
     onUpdate: (callback) => callbacks.update.push(callback),
     onEngineerMessage: (callback) => callbacks.engineer.push(callback),
+    onPlayAudio: (callback) => callbacks.playAudio.push(callback),
     onTtsProgress: (callback) => callbacks.ttsProgress.push(callback),
     onMapReady: (callback) => callbacks.mapReady.push(callback),
     getDiscordConfig: async () => ({ token: '', channelId: '' }),

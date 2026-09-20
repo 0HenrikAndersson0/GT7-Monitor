@@ -29,7 +29,7 @@ window.gt7Telemetry.onEngineerMessage((msg) => {
                     voices.find(v => v.name === 'Samantha') || 
                     voices.find(v => v.name.includes('Female')) || 
                     (voices.length > 0 ? voices[0] : null);
-  // window.speechSynthesis.speak(utterance); // Muted, playing via Discord instead
+  // window.speechSynthesis.speak(utterance); // Replaced by high-quality Kokoro TTS
 });
 
 window.gt7Telemetry.onUpdate((data) => {
@@ -274,5 +274,16 @@ if (fullscreenBtn) {
     if (wakeLock !== null && document.visibilityState === 'visible') {
       wakeLock = await navigator.wakeLock.request('screen');
     }
+  });
+}
+
+
+// Play high-quality audio locally if Discord is not connected
+if (window.gt7Telemetry.onPlayAudio) {
+  window.gt7Telemetry.onPlayAudio((audioUrl) => {
+    console.log("Playing local audio:", audioUrl);
+    const finalUrl = window.location.protocol === 'file:' ? `http://localhost:3000${audioUrl}` : audioUrl;
+    const audio = new Audio(finalUrl);
+    audio.play().catch(e => console.error("Error playing local audio:", e));
   });
 }

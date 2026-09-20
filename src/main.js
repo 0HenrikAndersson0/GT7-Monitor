@@ -23,6 +23,7 @@ let mainWindow;
 // --- Web Server Setup ---
 const webApp = express();
 webApp.use(express.static(__dirname)); // Serve src directory statically
+webApp.use('/tmpaudio', express.static(os.tmpdir())); // Serve generated audio files
 const webServer = http.createServer(webApp);
 const wss = new WebSocket.Server({ server: webServer });
 
@@ -129,6 +130,14 @@ app.whenReady().then(() => {
       mainWindow.webContents.send('tts-progress', info);
     }
     broadcastWs('tts-progress', info);
+  });
+
+  discordBot.setLocalAudioCallback((filename) => {
+    const audioUrl = `/tmpaudio/${filename}`;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('play-audio', audioUrl);
+    }
+    broadcastWs('play-audio', audioUrl);
   });
 
   discordBot.start();

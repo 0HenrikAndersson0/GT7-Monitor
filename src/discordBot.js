@@ -22,6 +22,8 @@ let ttsInstance = null;
 let isTtsInitializing = false;
 
 let progressCb = null;
+let localAudioCallback = null;
+function setLocalAudioCallback(cb) { localAudioCallback = cb; }
 function setProgressCallback(cb) { progressCb = cb; }
 
 async function initTTS() {
@@ -115,8 +117,19 @@ async function processQueue() {
     wav.fromScratch(1, rawAudio.sampling_rate, '32f', rawAudio.audio);
     fs.writeFileSync(audioFilePath, wav.toBuffer());
     
-    const resource = createAudioResource(audioFilePath);
-    audioPlayer.play(resource);
+    if (voiceConnection) {
+      const resource = createAudioResource(audioFilePath);
+      audioPlayer.play(resource);
+    } else {
+      if (localAudioCallback) localAudioCallback(path.basename(audioFilePath));
+      
+      // If discord isn't pacing it, pace it ourselves using the audio duration
+      const durationMs = (rawAudio.audio.length / rawAudio.sampling_rate) * 1000;
+      setTimeout(() => {
+        isPlaying = false;
+        processQueue();
+      }, durationMs + 500);
+    }
     
     // Clean up file after a delay to ensure it's loaded into ffmpeg
     setTimeout(() => {
@@ -162,4 +175,4 @@ function start() {
   client.login(token).catch(console.error);
 }
 
-module.exports = { start, speak, setProgressCallback };
+module.exports = { start, speak, setProgressCallback, setLocalAudioCallback };
