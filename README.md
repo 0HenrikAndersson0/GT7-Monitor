@@ -33,7 +33,7 @@ Your computer needs a program called Node.js to run this application.
 
 The app will open automatically! It will scan your local Wi-Fi network to find your PlayStation. Just make sure your computer and your PlayStation are connected to the same Wi-Fi network/router.
 
-*(Want to view the dashboard on your iPad or phone while driving? Just open the web address shown at the bottom of the desktop app in your mobile browser!)*
+*(Want to view the dashboard on your iPad or phone while driving? Just click the **Settings ⚙️** icon in the desktop app to find your local IP address, and open it in your mobile browser!)*
 
 ---
 
@@ -74,5 +74,4 @@ If you want the Race Engineer to speak to you directly inside your PlayStation h
 ## ✨ Features
 * **Zero-Config Telemetry**: No IP addresses to type. The app automatically scans your network and handshakes with your PlayStation.
 * **Automated Track Mapping**: During your first out-lap, the app silently learns the track's geometry and automatically slices it into 5 dynamic timing sectors.
-* **Crash Detection**: Uses raw physics and G-Force telemetry to detect rollovers, airborne jumps, and massive impacts, while intelligently ignoring the AI pit lane takeover.
 * **Mobile Web View**: Pop your iPad or phone on your racing rig. The app hosts a local web server so you can view the dashboard smoothly on any device.
