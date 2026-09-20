@@ -9,6 +9,11 @@ With the optional Discord integration, the Race Engineer will even speak to you 
 
 ---
 
+## 🎥 Watch it in Action!
+[![GT7 Race Engineer Demo](https://img.youtube.com/vi/N8kmMQEeJAY/maxresdefault.jpg)](https://youtu.be/N8kmMQEeJAY)
+
+---
+
 ## 📸 Screenshots
 
 ![Modern Racing Dash](docs/screen1.png)
