@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gran Turismo 7 Dash View</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 10px 10px 10px; /* added top padding to avoid nav overlap */
+      box-sizing: border-box;
+      user-select: none;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .nav {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+    }
+    .nav a {
+      color: #aaa;
+      text-decoration: none;
+      font-size: 14px;
+      background: #333;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .nav a:hover {
+      background: #555;
+    }
+
+    /* Dashboard Layout */
+    .screens-container {
+      container-type: inline-size;
+      width: 100%;
+      max-width: 1000px;
+      aspect-ratio: 24 / 9; /* Roughly matches the wide screen ratio */
+      position: relative;
+    }
+
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border: 3px solid #222;
+      border-radius: 10px;
+      box-sizing: border-box;
+      display: none;
+      flex-direction: column;
+      padding: 8px;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .main-row {
+      display: flex;
+      flex: 1;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    /* Panels Common */
+    .panel {
+      border: 1px solid #444;
+      border-radius: 5px;
+      display: flex;
+    }
+
+    /* Left Section: Tires (2x2 grid with crosshairs) */
+    .left-panel {
+      flex: 1.2;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    .left-panel::before { /* Vertical line */
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 10%;
+      bottom: 10%;
+      width: 1px;
+      background: #444;
+    }
+    .left-panel::after { /* Horizontal line */
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: #444;
+    }
+    .tire-row {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10%;
+    }
+    .tire-val {
+      font-size: 2.8cqw;
+      font-weight: bold;
+    }
+
+    /* Center Section: Gear */
+    .center-panel {
+      flex: 0.8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 8px;
+      background: #111;
+      padding: 5px;
+    }
+    .delta-box {
+      background: #0f0;
+      color: #000;
+      font-size: 1.2cqw;
+      font-weight: bold;
+      width: 80%;
+      text-align: center;
+      border-radius: 3px;
+      padding: 2px 0;
+    }
+    .gear {
+      font-size: 10cqw;
+      font-weight: bold;
+      line-height: 1;
+      margin: -10px 0;
+    }
+    .rpm {
+      font-size: 1.2cqw;
+      color: #aaa;
+    }
+    .speed-box {
+      background: #fff;
+      color: #000;
+      font-size: 1.8cqw;
+      font-weight: bold;
+      width: 100%;
+      text-align: center;
+      border-radius: 3px;
+      padding: 2px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .speed-box span {
+      font-size: 1cqw;
+      margin-left: 5px;
+      color: #333;
+    }
+
+    /* Right Section: Laps */
+    .right-panel {
+      flex: 1.8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 15px;
+      background: #111;
+    }
+    .lap-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 5px 0;
+    }
+    .lap-label {
+      font-size: 1cqw;
+      color: #aaa;
+      text-transform: uppercase;
+      margin-right: 15px;
+    }
+    .lap-time {
+      font-size: 3.5cqw;
+      font-weight: bold;
+      font-family: monospace;
+      text-align: right;
+    }
+    .lap-time.white { color: #fff; }
+    .lap-time.yellow { color: #ff0; }
+    .lap-time.magenta { color: #f0f; }
+
+    /* Bottom Section */
+    .bottom-row {
+      height: 50px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 5px;
+    }
+    .bottom-box {
+      border: 1px solid #444;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      width: 50px;
+    }
+    .bottom-box .label {
+      font-size: 0.6cqw;
+      color: #aaa;
+      margin-top: -5px;
+    }
+    .bottom-box .val {
+      font-size: 1.6cqw;
+      font-weight: bold;
+    }
+    /* Specific Colors */
+    .bb-blue { border-color: #0af; border-width: 2px; }
+    .bb-blue .val, .bb-blue .label { color: #0af; }
+
+    .bb-blue2 { border-color: #0ff; border-width: 2px; }
+    .bb-blue2 .val, .bb-blue2 .label { color: #0ff; }
+
+    .bb-yellow { border-color: #ff0; border-width: 2px; }
+    .bb-yellow .val, .bb-yellow .label { color: #ff0; }
+
+    .bb-red { border-color: #f00; border-width: 2px; }
+    .bb-red .val, .bb-red .label { color: #f00; }
+
+    .bb-green { border-color: #0f0; border-width: 2px; }
+    .bb-green .val, .bb-green .label { color: #0f0; }
+
+    /* Wider fuel box */
+    .fuel-container {
+      border: 1px solid #fff;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      margin-left: auto;
+      gap: 15px;
+    }
+    .fuel-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .fuel-col .val {
+      font-size: 2cqw;
+      font-weight: bold;
+      color: #fff;
+    }
+    .fuel-col .label {
+      font-size: 0.7cqw;
+      color: #aaa;
+    }
+    .fuel-label-main {
+      font-size: 0.8cqw;
+      color: #aaa;
+      position: absolute;
+      top: -6px;
+      background: #000;
+      padding: 0 5px;
+    }
+
+    /* Screen 2 specific styles */
+    .map-row {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      height: 100%;
+    }
+    .map-col {
+      flex: 2;
+      background: #111;
+      border-radius: 5px;
+      border: 1px solid #444;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      position: relative;
+    }
+    .timing-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .timing-panel {
+      flex: 1;
+      background: #111;
+      border-radius: 5px;
+      border: 1px solid #444;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .sector-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+      font-size: 1.5cqw;
+      font-family: monospace;
+    }
+    .sector-label {
+      color: #aaa;
+      text-transform: uppercase;
+      font-size: 1.2cqw;
+    }
+    .sector-val {
+      color: #fff;
+      font-weight: bold;
+    }
+    .sector-val.best {
+      color: #f0f; /* purple */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="index.html">&larr; Classic View</a>
+    <a href="#" id="fullscreenBtn" style="margin-left: 10px;">⛶ Fullscreen</a>
+    <a href="#" id="settingsBtn" style="margin-left: 10px;">⚙️ Settings</a>
+  </div>
+
+  <div id="ttsProgressContainer" style="display: none; position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 5px; border: 1px solid #444;">
+    <div style="color: #aaa; font-size: 12px; margin-bottom: 5px;">Downloading Voice Model...</div>
+    <div style="width: 200px; height: 10px; background: #333; border-radius: 5px; overflow: hidden;">
+      <div id="ttsProgressBar" style="width: 0%; height: 100%; background: #0af; transition: width 0.2s;"></div>
+    </div>
+  </div>
+
+  <div id="settingsModal" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border: 2px solid #444; border-radius: 10px; z-index: 200; width: 450px; max-width: 90%;">
+    <h3 style="margin-top: 0; color: #fff;">Discord Settings</h3>
+    <label style="display: block; margin-bottom: 5px; color: #aaa;">Bot Token:</label>
+    <input type="password" id="botToken" style="width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; background: #222; border: 1px solid #555; color: #fff; border-radius: 4px;">
+    
+    <label style="display: block; margin-bottom: 5px; color: #aaa;">Voice Channel ID:</label>
+    <input type="text" id="channelId" style="width: 100%; padding: 8px; margin-bottom: 20px; box-sizing: border-box; background: #222; border: 1px solid #555; color: #fff; border-radius: 4px;">
+
+    <hr style="border: none; border-top: 1px solid #444; margin: 20px 0;">
+    
+    <h3 style="margin-top: 0; color: #fff;">Remote Access (Phone/Tablet)</h3>
+    <p style="color: #aaa; font-size: 14px; margin-bottom: 5px;">To view this dashboard on another device, connect it to the same Wi-Fi network and open one of these addresses in a web browser:</p>
+    <ul id="ipList" style="color: #0f0; background: #000; padding: 10px 20px; border-radius: 5px; border: 1px solid #333; font-family: monospace; font-size: 14px; list-style-type: none;">
+      <li>Loading...</li>
+    </ul>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+      <button id="closeSettingsBtn" style="padding: 8px 15px; background: #333; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+      <button id="saveSettingsBtn" style="padding: 8px 15px; background: #0af; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Save & Restart Bot</button>
+    </div>
+  </div>
+
+  <div id="subtitles" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #0f0; padding: 10px 20px; border-radius: 5px; font-size: 20px; font-weight: bold; z-index: 100; display: none; text-align: center; border: 1px solid #0f0;"></div>
+
+  <div class="screens-container">
+    
+    <!-- Screen 1: Essential Info -->
+    <div id="screen1" class="screen active">
+      <div class="main-row">
+        <!-- Left: Tires -->
+        <div class="panel left-panel">
+          <div class="tire-row">
+            <div class="tire-val" id="tire_fl">0</div>
+            <div class="tire-val" id="tire_fr">0</div>
+          </div>
+          <div class="tire-row">
+            <div class="tire-val" id="tire_rl">0</div>
+            <div class="tire-val" id="tire_rr">0</div>
+          </div>
+        </div>
+
+        <!-- Center: Gear / RPM -->
+        <div class="panel center-panel">
+          <div class="delta-box" id="dash_throttle_bar">0.000</div>
+          <div class="gear" id="dash_gear">N</div>
+          <div class="rpm" id="dash_rpm">00000</div>
+          <div class="speed-box">
+            <span id="dash_speed_val" style="font-size: inherit; color: inherit; margin: 0;">000</span> <span>km/h</span>
+          </div>
+        </div>
+
+        <!-- Right: Laps -->
+        <div class="panel right-panel">
+          <div class="lap-row">
+            <span class="lap-label">PREDICTED LAP</span>
+            <span class="lap-time white" id="dash_current_lap">00:00.000</span>
+          </div>
+          <div class="lap-row">
+            <span class="lap-label">LAST LAP</span>
+            <span class="lap-time yellow" id="dash_last_lap">00:00.000</span>
+          </div>
+          <div class="lap-row">
+            <span class="lap-label">BEST LAP</span>
+            <span class="lap-time magenta" id="dash_best_lap">00:00.000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: Settings & Fuel -->
+      <div class="bottom-row">
+        <div class="bottom-box bb-blue">
+          <span class="label">THR</span>
+          <span class="val" id="dash_throttle">0</span>
+        </div>
+        <div class="bottom-box bb-blue2">
+          <span class="label">TRQ</span>
+          <span class="val" id="dash_rpm_pct">0</span>
+        </div>
+        <div class="bottom-box bb-yellow">
+          <span class="label">ABS</span>
+          <span class="val" id="dash_current_lap_box">0</span>
+        </div>
+        <div class="bottom-box bb-red">
+          <span class="label">BRK</span>
+          <span class="val" id="dash_brake">0</span>
+        </div>
+        <div class="bottom-box bb-green">
+          <span class="label">BST</span>
+          <span class="val" id="dash_boost">0</span>
+        </div>
+
+        <!-- Fuel container on the right -->
+        <div class="fuel-container">
+          <div class="fuel-label-main">FUEL</div>
+          <div class="fuel-col">
+            <span class="val" id="dash_fuel">0.0</span>
+            <span class="label">LITRES</span>
+          </div>
+          <div class="fuel-col">
+            <span class="val" id="dash_capacity">0.0</span>
+            <span class="label">CAPACITY</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Map & Timing -->
+    <div id="screen2" class="screen">
+      <div class="map-row">
+        <!-- Map -->
+        <div class="map-col">
+          <div id="status" style="color: #666; position: absolute; top: 10px; font-size: 1.2cqw; font-weight: bold; text-transform: uppercase; z-index: 5;">Waiting for Lap 1 to map track...</div>
+          <canvas id="trackCanvas" width="800" height="400" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+        </div>
+        <!-- Timing -->
+        <div class="timing-col">
+          <div class="timing-panel" style="justify-content: space-around;">
+            <div class="lap-row" style="flex-direction: column; align-items: flex-end;">
+              <span class="lap-label">BEST LAP</span>
+              <span class="lap-time magenta" id="s2_dash_best_lap">00:00.000</span>
+            </div>
+            <div class="lap-row" style="flex-direction: column; align-items: flex-end;">
+              <span class="lap-label">LAST LAP</span>
+              <span class="lap-time yellow" id="s2_dash_last_lap">00:00.000</span>
+            </div>
+          </div>
+          <div class="timing-panel" id="sectors-panel" style="position: relative;">
+            <div style="color: #aaa; margin-bottom: 5px; font-size: 1.2cqw; font-weight: bold;">SECTORS (CURRENT LAP)</div>
+            <div id="sectorLap1Warning" style="color: #ffaa00; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2cqw; font-weight: bold; text-align: center; pointer-events: none; text-transform: uppercase; background: rgba(17,17,17,0.9); width: 90%; padding: 10px; border-radius: 5px;">Data not available on first out lap</div>
+            <div class="sector-row"><span class="sector-label">Sector 1</span><span class="sector-val" id="sec0">--:--.---</span></div>
+            <div class="sector-row"><span class="sector-label">Sector 2</span><span class="sector-val" id="sec1">--:--.---</span></div>
+            <div class="sector-row"><span class="sector-label">Sector 3</span><span class="sector-val" id="sec2">--:--.---</span></div>
+            <div class="sector-row"><span class="sector-label">Sector 4</span><span class="sector-val" id="sec3">--:--.---</span></div>
+            <div class="sector-row"><span class="sector-label">Sector 5</span><span class="sector-val" id="sec4">--:--.---</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Inputs & Curves -->
+    <div id="screen3" class="screen">
+      <div class="map-row">
+        <!-- Map with Inputs -->
+        <div class="map-col">
+          <canvas id="trackCanvasInputs" width="800" height="400" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+        </div>
+        <!-- Curves -->
+        <div class="map-col">
+          <div style="color: #aaa; position: absolute; top: 10px; font-size: 1.2cqw; font-weight: bold;">THROTTLE & BRAKE TRACE</div>
+          <div id="lap1Warning" style="color: #ffaa00; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5cqw; font-weight: bold; text-align: center; pointer-events: none; text-transform: uppercase; background: rgba(17,17,17,0.8); padding: 10px; border-radius: 5px;">Data not available on first out lap</div>
+          <canvas id="curvesCanvas" width="800" height="400" style="width: 100%; height: 100%; object-fit: contain;"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="web-client.js"></script>
+  <script src="map.js"></script>
+  <script src="dash.js"></script>
+</body>
+</html>
