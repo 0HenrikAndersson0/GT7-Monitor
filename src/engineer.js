@@ -160,12 +160,23 @@ class RaceEngineer {
        this.revLimiterTimeMs += 16; // approx 60fps frame time
     }
 
-    // Yaw Rate (Spin Detection & Oversteer)
+    // Yaw Rate (Spin Detection, Oversteer, and Corner Detection)
     if (telemetry.speed_kmh > 30) {
        let deltaYaw = telemetry.rot_yaw - (this.lastYaw !== undefined ? this.lastYaw : telemetry.rot_yaw);
        while (deltaYaw > Math.PI) deltaYaw -= 2 * Math.PI;
        while (deltaYaw < -Math.PI) deltaYaw += 2 * Math.PI;
        const yawRate = Math.abs(deltaYaw);
+
+       // Smooth the yaw rate to determine if we are in a sustained corner
+       if (this.avgYawRate === undefined) this.avgYawRate = 0;
+       this.avgYawRate = 0.8 * this.avgYawRate + 0.2 * yawRate;
+
+       // Corner detection with hysteresis (0.0015 rad/frame is ~5 deg/sec)
+       if (this.avgYawRate > 0.0015) {
+           this.isInCorner = true;
+       } else if (this.avgYawRate < 0.0005) {
+           this.isInCorner = false;
+       }
 
        if (yawRate > 0.08 && telemetry.speed_kmh > 40) { // > 270 deg/sec rotation
           // Temporarily disabled due to over-sensitivity
@@ -176,6 +187,9 @@ class RaceEngineer {
        } else if (yawRate > 0.03 && telemetry.throttle > 50) {
           this.oversteerCount++;
        }
+    } else {
+       // Too slow to be considered a significant corner for talking purposes
+       this.isInCorner = false;
     }
     this.lastYaw = telemetry.rot_yaw;
     // ----------------------------------------

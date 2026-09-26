@@ -140,6 +140,8 @@ app.whenReady().then(() => {
     broadcastWs('play-audio', audioUrl);
   });
 
+  discordBot.setSpeakCondition(() => !engineer.isInCorner);
+  
   discordBot.start();
   createWindow();
 

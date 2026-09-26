@@ -23,8 +23,10 @@ let isTtsInitializing = false;
 
 let progressCb = null;
 let localAudioCallback = null;
+let speakCondition = null;
 function setLocalAudioCallback(cb) { localAudioCallback = cb; }
 function setProgressCallback(cb) { progressCb = cb; }
+function setSpeakCondition(cb) { speakCondition = cb; }
 
 async function initTTS() {
   if (ttsInstance) return ttsInstance;
@@ -117,24 +119,33 @@ async function processQueue() {
     wav.fromScratch(1, rawAudio.sampling_rate, '32f', rawAudio.audio);
     fs.writeFileSync(audioFilePath, wav.toBuffer());
     
-    if (voiceConnection) {
-      const resource = createAudioResource(audioFilePath);
-      audioPlayer.play(resource);
-    } else {
-      if (localAudioCallback) localAudioCallback(path.basename(audioFilePath));
+    const playAudio = () => {
+      if (speakCondition && !speakCondition()) {
+        setTimeout(playAudio, 250);
+        return;
+      }
+
+      if (voiceConnection) {
+        const resource = createAudioResource(audioFilePath);
+        audioPlayer.play(resource);
+      } else {
+        if (localAudioCallback) localAudioCallback(path.basename(audioFilePath));
+        
+        // If discord isn't pacing it, pace it ourselves using the audio duration
+        const durationMs = (rawAudio.audio.length / rawAudio.sampling_rate) * 1000;
+        setTimeout(() => {
+          isPlaying = false;
+          processQueue();
+        }, durationMs + 500);
+      }
       
-      // If discord isn't pacing it, pace it ourselves using the audio duration
-      const durationMs = (rawAudio.audio.length / rawAudio.sampling_rate) * 1000;
+      // Clean up file after a delay to ensure it's loaded into ffmpeg
       setTimeout(() => {
-        isPlaying = false;
-        processQueue();
-      }, durationMs + 500);
-    }
-    
-    // Clean up file after a delay to ensure it's loaded into ffmpeg
-    setTimeout(() => {
-      fs.unlink(audioFilePath, () => {});
-    }, 5000);
+        fs.unlink(audioFilePath, () => {});
+      }, 5000);
+    };
+
+    playAudio();
   } catch (e) {
     console.error('[Discord] TTS Generation/Playback Error:', e);
     isPlaying = false;
@@ -175,4 +186,4 @@ function start() {
   client.login(token).catch(console.error);
 }
 
-module.exports = { start, speak, setProgressCallback, setLocalAudioCallback };
+module.exports = { start, speak, setProgressCallback, setLocalAudioCallback, setSpeakCondition };
